@@ -114,7 +114,7 @@ public class WorkshopService {
         }
     }
     public String getWorkshopThumbnail(String workshopId) {
-        String thumbnailUrl = "http://velocityacademy.org/wp-content/uploads/2016/03/placeholder.jpg";  // Default placeholder
+        String thumbnailUrl = "/placeholder.svg";  // Default placeholder
 
         try {
             String url = modUrlTemplate + workshopId;
