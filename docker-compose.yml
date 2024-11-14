@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend  # Path to the backend directory
+      dockerfile: dockerfile  # Dockerfile for the backend
+    container_name: springboot-backend
+    ports:
+      - "8080:8080"  # Exposing backend API on port 8080
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend  # Path to the frontend directory
+      dockerfile: dockerfile  # Dockerfile for the frontend
+    container_name: react-frontend
+    ports:
+      - "3000:80"  # Exposing frontend on port 3000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
