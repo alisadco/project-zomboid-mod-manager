@@ -11,7 +11,7 @@ import com.example.projectzomboidmodmanager.service.WorkshopService;
 import java.util.ArrayList;
 import java.util.List;
 
-@CrossOrigin(origins = {"https://pz.alisadco.com", "https://another-allowed-origin.com", "http://localhost:3000"})
+@CrossOrigin(origins = {"https://pz.alisadco.com", "https://www.pz.alisadco.com", "https://another-allowed-origin.com", "http://localhost:3000"})
 @RestController
 @RequestMapping("/api/mods")
 public class ZomboidModManagerController {
