@@ -50,32 +50,41 @@ const ModSelector = () => {
             return;
         }
 
-        setLoading(true);  // Set loading state to true
-
         try {
             const response = await fetch(`${apiUrl}/api/mods/getModDetails?workshopID=${individualModId}`);
             if (!response.ok) {
-                throw new Error('Failed to fetch mod details');
+                // If the response is not ok, do nothing
+                console.error('Failed to fetch mod details or mod not found.');
+                return;
             }
 
             const modDetails = await response.json();
+
+            // Check if modName, workshopId, or thumbnail is null or undefined
+            if (!modDetails.modName || !modDetails.workshopId || !modDetails.thumbnailUrl) {
+                console.log('Invalid mod data, not adding.');
+                return; // Do nothing if any of these values are missing
+            }
+
+            // If all required fields are valid, create the new mod object
             const newMod = {
                 modName: modDetails.modName,
                 workshopId: modDetails.workshopId,
                 thumbnail: modDetails.thumbnailUrl,
-                maps: modDetails.maps,  // No modification of maps here
+                maps: modDetails.maps,
             };
 
             // Add the new mod to the existing mods list
             setMods((prevMods) => [...prevMods, newMod]);
-            setIndividualModId('');
+            setIndividualModId('');  // Clear the input field after success
         } catch (error) {
+            // Handle any errors (e.g., network issues or invalid responses)
             console.error('Error fetching mod by ID:', error);
             alert('Failed to fetch mod details. Please try again.');
-        } finally {
-            setLoading(false);  // Set loading state to false after fetch
         }
     };
+
+
 
     // Function to copy the mods, maps, and workshop IDs to the clipboard
     const copyToClipboard = () => {
