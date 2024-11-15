@@ -1,3 +1,4 @@
+// src/components/MapCard.js
 import React from 'react';
 
 const MapCard = ({ mapName, modName, removeMap }) => {
@@ -5,7 +6,6 @@ const MapCard = ({ mapName, modName, removeMap }) => {
         <div className="card map-card">
             <h4>{mapName}</h4>
             <p>Mod: {modName}</p>
-            {/* Remove Map Button */}
             <button onClick={removeMap}>Remove Map</button>
         </div>
     );

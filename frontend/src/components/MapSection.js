@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import MapCard from './MapCard';
 
-const MapSection = ({ mods }) => {
+const MapSection = ({ mods, removeMap }) => {
     const [mapSearchTerm, setMapSearchTerm] = useState('');
 
     const filterMaps = (map) => map.toLowerCase().includes(mapSearchTerm.toLowerCase());
@@ -21,8 +21,13 @@ const MapSection = ({ mods }) => {
 
             <div className="map-cards">
                 {mods.flatMap((mod) =>
-                    mod.maps.filter(filterMaps).map((map, index) => (
-                        <MapCard key={`${mod.workshopId}-${map}`} mapName={map} modName={mod.modName} />
+                    mod.maps.filter(filterMaps).map((map) => (
+                        <MapCard
+                            key={`${mod.workshopId}-${map}`}
+                            mapName={map}
+                            modName={mod.modName}
+                            removeMap={() => removeMap(mod.workshopId, map)}
+                        />
                     ))
                 )}
             </div>

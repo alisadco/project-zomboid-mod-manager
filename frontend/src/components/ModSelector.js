@@ -1,3 +1,4 @@
+// src/components/ModSelector.js
 import React, { useState } from 'react';
 import ModSection from './ModSection';
 import MapSection from './MapSection';
@@ -84,11 +85,24 @@ const ModSelector = () => {
         }
     };
 
+    // Remove a mod by its workshop ID
+    const removeMod = (workshopId) => {
+        setMods((prevMods) => prevMods.filter((mod) => mod.workshopId !== workshopId));
+    };
 
+    // Remove a specific map from a mod by workshop ID and map name
+    const removeMap = (workshopId, mapName) => {
+        setMods((prevMods) =>
+            prevMods.map((mod) =>
+                mod.workshopId === workshopId
+                    ? { ...mod, maps: mod.maps.filter((map) => map !== mapName) }
+                    : mod
+            )
+        );
+    };
 
     // Function to copy the mods, maps, and workshop IDs to the clipboard
     const copyToClipboard = () => {
-        // Always add Muldraugh, KY to maps
         const modsNames = mods.map(mod => mod.modName).join('; ');
         const maps = ['Muldraugh, KY', ...mods.flatMap(mod => mod.maps)].join('; '); // Include Muldraugh, KY always
         const workshopIds = mods.map(mod => mod.workshopId).join('; ');
@@ -99,7 +113,6 @@ Map=${maps}
 WorkshopItems=${workshopIds}
         `.trim();
 
-        // Create a temporary text area to copy the data
         const textArea = document.createElement('textarea');
         textArea.value = data;
         document.body.appendChild(textArea);
@@ -149,10 +162,10 @@ WorkshopItems=${workshopIds}
             </div>
 
             {/* Mod Section */}
-            <ModSection mods={mods} />
+            <ModSection mods={mods} removeMod={removeMod} removeMap={removeMap} />
 
             {/* Map Section */}
-            <MapSection mods={mods} />
+            <MapSection mods={mods} removeMap={removeMap} />
         </main>
     );
 };
