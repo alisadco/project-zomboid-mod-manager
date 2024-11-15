@@ -1,17 +1,16 @@
 package com.example.projectzomboidmodmanager.service;
 
 import com.example.projectzomboidmodmanager.model.ModDetails;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Value;
-
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,6 @@ public class WorkshopService {
         this.restTemplate = restTemplate;
     }
 
-
     // Extracts individual Workshop item IDs from a collection page.
     public List<String> getWorkshopIds(String collectionId) {
         List<String> workshopIds = new ArrayList<>();
@@ -38,7 +36,7 @@ public class WorkshopService {
         try {
             String htmlContent = restTemplate.getForObject(collectionUrl, String.class);
             if (htmlContent != null) {
-                Pattern pattern = Pattern.compile("id=\"sharedfile_(\\d+)\"");
+                Pattern pattern = Pattern.compile("id=\"sharedfile_(\\d+)\"");  // Regex to extract workshop IDs
                 Matcher matcher = pattern.matcher(htmlContent);
 
                 while (matcher.find()) {
@@ -51,48 +49,60 @@ public class WorkshopService {
         return workshopIds;
     }
 
-
-    // Method to get mod details for a list of workshopIds
-    public List<ModDetails> getModDetails(List<String> workshopIds) {
-        List<ModDetails> modDetailsList = new ArrayList<>();  // List to store all mod details
+    // Asynchronous method to get mod details for a list of workshopIds
+    @Async
+    public CompletableFuture<List<ModDetails>> getModDetails(List<String> workshopIds) {
+        List<CompletableFuture<ModDetails>> futures = new ArrayList<>();
 
         for (String workshopId : workshopIds) {
-            String url = modUrlTemplate + workshopId;
-
-            try {
-                // Fetch the HTML content for the mod's Steam Workshop page
-                String htmlContent = restTemplate.getForObject(url, String.class);
-                if (htmlContent != null) {
-                    // Extract mod name from HTML content
-                    String modName = collectModNames(htmlContent);
-                    // Extract maps from HTML content
-                    Set<String> modMaps = new HashSet<>();
-                    collectMaps(htmlContent, modMaps);
-
-                    if (modName != null) {
-                        // Success: create ModDetails object with modName and maps
-                        ModDetails modDetails = new ModDetails(modName, workshopId, List.copyOf(modMaps),getWorkshopThumbnail(workshopId));
-                        modDetailsList.add(modDetails);
-                    } else {
-                        // Failure: return null for modName and maps
-                        ModDetails modDetails = new ModDetails(null, workshopId, null,null);
-                        modDetailsList.add(modDetails);
-                    }
-                } else {
-                    // Failure: return null for modName and maps
-                    ModDetails modDetails = new ModDetails(null, workshopId, null, null);
-                    modDetailsList.add(modDetails);
-                }
-            } catch (Exception e) {
-                // If an error occurs, return null for modName and maps
-                ModDetails modDetails = new ModDetails(null, workshopId, null, null);
-                modDetailsList.add(modDetails);
-                System.err.println("Failed to fetch or process URL: " + url);
-            }
+            CompletableFuture<ModDetails> future = CompletableFuture.supplyAsync(() -> {
+                return fetchModDetails(workshopId);
+            });
+            futures.add(future);
         }
 
-        // Return the list of ModDetails (including failures as null)
-        return modDetailsList;
+        // Wait for all futures to complete and gather the results
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> {
+                    List<ModDetails> modDetailsList = new ArrayList<>();
+                    for (CompletableFuture<ModDetails> future : futures) {
+                        try {
+                            modDetailsList.add(future.get());  // Get the result of each future
+                        } catch (Exception e) {
+                            modDetailsList.add(new ModDetails(null, null, null, null));  // Add default ModDetails in case of failure
+                        }
+                    }
+                    return modDetailsList;
+                });
+    }
+
+    // Helper method to fetch mod details from the HTML content
+    private ModDetails fetchModDetails(String workshopId) {
+        String url = modUrlTemplate + workshopId;
+        try {
+            // Fetch the HTML content for the mod's Steam Workshop page
+            String htmlContent = restTemplate.getForObject(url, String.class);
+            if (htmlContent != null) {
+                // Extract mod name from HTML content
+                String modName = collectModNames(htmlContent);
+                // Extract maps from HTML content
+                Set<String> modMaps = new HashSet<>();
+                collectMaps(htmlContent, modMaps);
+
+                if (modName != null) {
+                    // Success: create ModDetails object with modName and maps
+                    return new ModDetails(modName, workshopId, List.copyOf(modMaps), getWorkshopThumbnail(workshopId));
+                } else {
+                    // Failure: return a ModDetails object with nulls
+                    return new ModDetails(null, workshopId, null, null);
+                }
+            }
+        } catch (Exception e) {
+            // If an error occurs, return null for modName and maps
+            System.err.println("Failed to fetch or process URL: " + url);
+        }
+        // Return a default ModDetails object if the fetch failed
+        return new ModDetails(null, workshopId, null, null);
     }
 
     // Helper method to collect mod names from the HTML content
@@ -113,6 +123,8 @@ public class WorkshopService {
             maps.add(matcher.group(2).trim());
         }
     }
+
+    // Method to fetch the thumbnail for the Workshop mod
     public String getWorkshopThumbnail(String workshopId) {
         String thumbnailUrl = "/placeholder.svg";  // Default placeholder
 
