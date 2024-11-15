@@ -86,7 +86,7 @@ const ModSelector = () => {
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+            const timeoutId = setTimeout(() => controller.abort(), 150000); // 150 seconds timeout
 
             // Fetching individual mod details asynchronously
             const response = await fetch(`${apiUrl}/api/mods/getModDetails?workshopID=${individualModId}`, {
