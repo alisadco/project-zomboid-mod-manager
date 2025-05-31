@@ -5,15 +5,14 @@ import Footer from './components/Footer';
 import ModSelector from './components/ModSelector';
 
 const App = () => (
-    <div className="container">
-      {/* Header */}
-      <Header />
-
-      {/* Body */}
-      <ModSelector />
-
-      {/* Footer */}
-      <Footer />
+    <div className="app">
+        <div className="app-container">
+            <Header />
+            <main className="main-content">
+                <ModSelector />
+            </main>
+            <Footer />
+        </div>
     </div>
 );
 
