@@ -2,10 +2,17 @@
 import React from 'react';
 import '../styles/LoadingSpinner.css';
 
-const LoadingSpinner = () => {
+const LoadingSpinner = ({ message = "Loading..." }) => {
     return (
-        <div className="spinner-container">
-            <div className="spinner"></div>
+        <div className="loading-overlay">
+            <div className="loading-content">
+                <div className="spinner-modern">
+                    <div className="spinner-ring"></div>
+                    <div className="spinner-ring"></div>
+                    <div className="spinner-ring"></div>
+                </div>
+                <p className="loading-message">{message}</p>
+            </div>
         </div>
     );
 };
