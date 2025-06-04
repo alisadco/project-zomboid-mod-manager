@@ -1,8 +1,21 @@
-FROM openjdk:17-jdk-slim AS build
+FROM maven:3.8.4-openjdk-17 AS build
 
 WORKDIR /app
 
-COPY target/project-zomboid-mod-manager-0.0.1-SNAPSHOT.jar app.jar
+# Kopiere die pom.xml und src Dateien
+COPY pom.xml .
+COPY src ./src
+
+# Führe Maven Build aus
+RUN mvn clean install -DskipTests
+
+# Zweiter Stage für den Runtime Container
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Kopiere nur das gebaute JAR aus dem Build-Stage
+COPY --from=build /app/target/project-zomboid-mod-manager-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
