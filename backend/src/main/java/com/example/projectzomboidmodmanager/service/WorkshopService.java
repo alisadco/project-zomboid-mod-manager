@@ -79,6 +79,7 @@ public class WorkshopService {
     // Helper method to fetch mod details from the HTML content
     private ModDetails fetchModDetails(String workshopId) {
         String url = modUrlTemplate + workshopId;
+        rateLimit();
         try {
             // Fetch the HTML content for the mod's Steam Workshop page
             String htmlContent = restTemplate.getForObject(url, String.class);
@@ -145,5 +146,10 @@ public class WorkshopService {
         }
 
         return thumbnailUrl;
+    }
+    private void rateLimit() {
+    try {
+        Thread.sleep(1500); // 1.5 seconds
+    } catch (InterruptedException ignored) {}
     }
 }
